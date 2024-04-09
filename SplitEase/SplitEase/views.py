@@ -1,8 +1,12 @@
+import json
+
 from django.http import JsonResponse
+from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
-from .models import Bill, Product
+from .models import Bill, Product, Participant
 from .controllers import bill_controller
+from .controllers import participant_controller
 
 
 @csrf_exempt
@@ -36,6 +40,22 @@ def add_new_bill_with_products(request):
     else:
         return JsonResponse({'success': False, 'error': 'Only POST requests are allowed'})
 
+@csrf_exempt
+def add_participant_to_bill(request):
+    if request.method == 'POST':
+        body = json.loads(request.body)
+        print(body)
+        new_participant = participant_controller.create_participant(body['name'], body['bill_id'])
+        return JsonResponse({'success': True, 'new_participant': new_participant})
+    else:
+        return JsonResponse({'success': False, 'error': 'Only POST requests are allowed'})
+
+@csrf_exempt
+def participant_check_item_in_bill(request, participant_id):
+    if request.method == 'POST':
+        product_id = json.loads(request.body)['product_id']
+    else:
+        return JsonResponse({'success': False, 'error': 'Only POST requests are allowed'})
 
 def get_bill_total_amount(request, bill_id):
     if request.method == 'GET':
@@ -55,3 +75,26 @@ def get_bill(request, bill_id):
             return JsonResponse(bill_controller.get_bill_by_id(bill_id))
         except Bill.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Bill does not exist'})
+
+
+def bill_details(request, bill_id):
+    try:
+        bill = Bill.objects.get(bill_id=bill_id)
+        products = Product.objects.filter(product_bill=bill)
+        participants = Participant.objects.filter(participant_bill=bill)
+
+        product_total_cost = {}
+        for product in products:
+            product_total_cost[product.product_id] = product.calculate_total()
+
+        bill_total = bill.calculate_bill_amount()
+
+        return render(request, 'bill_details.html', {
+            'bill': bill,
+            'products': products,
+            'participants': participants,
+            'bill_total': bill_total,
+            'product_total_cost': product_total_cost,
+        })
+    except Bill.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Bill does not exist'})

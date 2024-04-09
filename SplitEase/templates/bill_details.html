@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bill Details</title>
+</head>
+<body>
+    <h1>Bill Details</h1>
+    <h2>Bill ID: {{ bill.bill_id }}</h2>
+    <p>Bill Date: {{ bill.bill_date }}</p>
+    <p>Total Amount: {{ bill_total }}</p>
+
+    <h2>Products:</h2>
+    <ul>
+    {% for product in products %}
+        <li>{{ product.product_label }} - Quantity: {{ product.product_quantity }} - Total Cost: {{ product_total_cost[product.product_id] }}</li>
+    {% endfor %}
+    </ul>
+
+    <h2>Participants:</h2>
+    <ul>
+    {% for participant in participants %}
+        <li>{{ participant.participant_name }}</li>
+        <ul>
+        {% for product in products %}
+            <li>{{ product.product_label }} - <input type="checkbox" name="participant{{ participant.participant_id }}_product{{ product.product_id }}"></li>
+        {% endfor %}
+        </ul>
+    {% endfor %}
+    </ul>
+</body>
+</html>

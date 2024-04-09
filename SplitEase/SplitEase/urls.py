@@ -23,4 +23,5 @@ urlpatterns = [
     path("add_data/", views.add_new_bill_with_products, name="add_new_bill"),
     path("bill/total-amount/<int:bill_id>/", views.get_bill_total_amount, name="bill_total_amount"),
     path("bill/<int:bill_id>/", views.get_bill, name="get_bill"),
+    path("participant/create", views.add_participant_to_bill, name="create_participant"),
 ]

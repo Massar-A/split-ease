@@ -35,3 +35,9 @@ class Product(models.Model):
 
     def __str__(self):
         return str([self.product_label, self.product_quantity, self.product_price, self.product_bill])
+
+
+class ParticipantProductContribution(models.Model):
+    participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    contributes = models.BooleanField(default=True)
