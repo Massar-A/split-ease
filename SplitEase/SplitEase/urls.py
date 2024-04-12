@@ -20,8 +20,10 @@ from . import views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("add_data/", views.add_new_bill_with_products, name="add_new_bill"),
-    path("bill/total-amount/<int:bill_id>/", views.get_bill_total_amount, name="bill_total_amount"),
     path("bill/<int:bill_id>/", views.get_bill, name="get_bill"),
-    path("participant/create", views.add_participant_to_bill, name="create_participant"),
+    path("bill/<int:bill_id>/view/", views.bill_details, name="view_bill"),
+    path("participant/create/", views.add_participant_to_bill, name="create_participant"),
+    path("participant/<int:participant_id>/contribution/", views.participant_contribution, name="participant_contribution"),
+    path("product/create/", views.create_product, name="create_product"),
+    path("bill/create/", views.create_new_bill, name="create_bill"),
 ]

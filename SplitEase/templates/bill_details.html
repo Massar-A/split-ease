@@ -1,3 +1,4 @@
+{% load custom_filters %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -12,22 +13,58 @@
     <p>Total Amount: {{ bill_total }}</p>
 
     <h2>Products:</h2>
-    <ul>
-    {% for product in products %}
-        <li>{{ product.product_label }} - Quantity: {{ product.product_quantity }} - Total Cost: {{ product_total_cost[product.product_id] }}</li>
-    {% endfor %}
-    </ul>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Product Label</th>
+                <th>Quantity</th>
+                <th>Unit Price</th>
+                <th>Total Price</th>
+                <th>Price per Person</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in products %}
+            <tr>
+                <td>{{ product.product_label }}</td>
+                <td>{{ product.product_quantity }}</td>
+                <td>{{ product.product_price_per_unit }}</td>
+                <td>{{ product.product_total_price }}</td>
+                <td>{{ product_price_per_participant|get_item:product.product_id }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
     <h2>Participants:</h2>
-    <ul>
-    {% for participant in participants %}
-        <li>{{ participant.participant_name }}</li>
-        <ul>
-        {% for product in products %}
-            <li>{{ product.product_label }} - <input type="checkbox" name="participant{{ participant.participant_id }}_product{{ product.product_id }}"></li>
-        {% endfor %}
-        </ul>
-    {% endfor %}
-    </ul>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Participant Name</th>
+                {% for product in products %}
+                <th>{{ product.product_label }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for participant in participants %}
+            <tr>
+                <td>{{ participant.participant_name }}</td>
+                {% for product in products %}
+                <td>
+                    <input type="checkbox" name="participant{{ participant.participant_id }}_product{{ product.product_id }}" {% if participant_product_contribution.participant.participant_id.product.product_id %}checked{% endif %} onchange="updateContribution({{ participant.participant_id }}, {{ product.product_id }}, this.checked)">
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        function updateContribution(participantId, productId, isChecked) {
+            // Ajoutez votre logique JavaScript pour mettre à jour la contribution du participant
+            // Vous pouvez appeler une API backend pour mettre à jour la valeur dans la base de données
+        }
+    </script>
 </body>
 </html>
