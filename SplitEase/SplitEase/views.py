@@ -86,11 +86,22 @@ def participant_contribution(request, participant_id):
         body = json.loads(request.body)
         participant = participant_controller.get_participant_by_participant_id(participant_id)
         product = product_controller.get_product_by_product_id(body['product_id'])
-        print(participant_id)
         participant_controller.participant_contribute(participant, product, body['contribution'], body['bill_id'])
         return JsonResponse({'success': True})
     else:
         return JsonResponse({'success': False, 'error': 'Only PATCH requests are allowed'})
+
+
+@csrf_exempt
+def delete_participant(request, participant_id):
+    if request.method == 'DELETE':
+        try:
+            participant_controller.delete_participant(participant_id)
+            return JsonResponse({'success': True})
+        except:
+            return JsonResponse({'success': False})
+    else:
+        JsonResponse({'success': False, 'error': 'Only DELETE requests are allowed'})
 
 
 def get_price_per_participant(request, product_id, bill_id):
