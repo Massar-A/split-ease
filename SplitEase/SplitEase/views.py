@@ -81,13 +81,14 @@ def participant_check_item_in_bill(request, participant_id):
 
 
 @csrf_exempt
-def participant_contribution(request, participant_id):
+def participant_contribution(request, participant_id, bill_id):
     if request.method == 'PATCH':
         body = json.loads(request.body)
         participant = participant_controller.get_participant_by_participant_id(participant_id)
         product = product_controller.get_product_by_product_id(body['product_id'])
-        participant_controller.participant_contribute(participant, product, body['contribution'], body['bill_id'])
-        return JsonResponse({'success': True})
+        participant_controller.participant_contribute(participant, product, body['contribution'], bill_id)
+        new_price = product_controller.get_price_per_participant(body['product_id'], bill_id)
+        return JsonResponse({'success': True, 'new_price': new_price})
     else:
         return JsonResponse({'success': False, 'error': 'Only PATCH requests are allowed'})
 
@@ -108,6 +109,21 @@ def get_price_per_participant(request, product_id, bill_id):
     if request.method == 'GET':
         return JsonResponse(
             {'price_per_participant': product_controller.get_price_per_participant(product_id, bill_id)})
+    else:
+        return JsonResponse({'success': False, 'error': 'Only GET is allowed'})
+
+
+def get_participants_total_cost(request, bill_id):
+    if request.method == 'GET':
+        try:
+            participants = participant_controller.get_participants_by_bill_id(bill_id)
+            response = dict()
+            for participant in participants:
+                response[participant.participant_id] = participant_controller.get_participant_total_cost(
+                    participant.participant_id, bill_id)
+            return JsonResponse(response)
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
 
 
 def get_bill(request, bill_id):
@@ -129,17 +145,35 @@ def bill_details(request, bill_id):
 
         products = product_controller.get_products_by_bill_id(bill_id)
         product_price_per_participant = dict()
-        for product in products:
-            product_price_per_participant[product.product_id] = product_controller.get_price_per_participant(
-                product.product_id,
-                bill_id)
         participants = Participant.objects.filter(participant_bill=bill_id)
+
+        participants_products_contribution = dict()
+
+        participants_total_cost = dict()
+
+        for participant in participants:
+            contributions = participant_controller.get_participants_contributions(participant.participant_id, bill_id)
+            participants_total_cost[participant.participant_id] = participant_controller.get_participant_total_cost(
+                participant.participant_id, bill_id)
+            for product in products:
+                if product.product_id in contributions:
+                    contribution_status = True
+                else:
+                    contribution_status = False
+                if product.product_id not in participants_products_contribution:
+                    participants_products_contribution[product.product_id] = dict()
+                participants_products_contribution[product.product_id][participant.participant_id] = contribution_status
+                product_price_per_participant[product.product_id] = product_controller.get_price_per_participant(
+                    product.product_id,
+                    bill_id)
         bill_total = bill.get_bill_amount()
 
         return render(request, 'bill_details.html', {
             'bill': bill,
             'products': products,
             'product_price_per_participant': product_price_per_participant,
+            'participants_products_contribution': participants_products_contribution,
+            'participants_total_cost': participants_total_cost,
             'participants': participants,
             'bill_total': bill_total
         })

@@ -40,13 +40,26 @@ def participant_contribute(participant, product, contribution, bill_id):
         return Exception('Something went wrong')
 
 
-def get_participants_contributions(product, bill_id):
+def get_participants_contributions(participant_id, bill_id):
     try:
-        contribution = ParticipantProductContribution.objects.filter(product, bill_id=bill_id).first().values(
-            'contribution')
+        contribution = list(ParticipantProductContribution.objects.filter(participant_id=participant_id,
+                                                                          bill_id=bill_id,
+                                                                          contributes=True).values_list('product_id',
+                                                                                                        flat=True))
         return contribution
     except:
         return Exception('Something went wrong')
+
+
+def get_participant_total_cost(participant_id, bill_id):
+    try:
+        total_cost = 0.0
+        contributed_products = get_participants_contributions(participant_id, bill_id)
+        for product in contributed_products:
+            total_cost += float(product_controller.get_price_per_participant(product, bill_id))
+        return "%.2f" % round(total_cost, 2)
+    except Exception as e:
+        return str(e)
 
 
 def get_participants_by_bill_id(bill_id):

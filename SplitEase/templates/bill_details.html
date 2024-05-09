@@ -7,64 +7,137 @@
     <title>Bill Details</title>
 </head>
 <body>
-    <h1>Bill Details</h1>
-    <h2>Bill ID: {{ bill.bill_id }}</h2>
-    <p>Bill Date: {{ bill.bill_date }}</p>
-    <p>Total Amount: {{ bill_total }}</p>
+<h1>Bill Details</h1>
+<h2>Bill ID: {{ bill.bill_id }}</h2>
+<p>Bill Date: {{ bill.bill_date }}</p>
+<p>Total Amount: {{ bill_total }}</p>
 
-    <h2>Products:</h2>
-    <table border="1">
-        <thead>
-            <tr>
-                <th>Product Label</th>
-                <th>Quantity</th>
-                <th>Unit Price</th>
-                <th>Total Price</th>
-                <th>Price per Person</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for product in products %}
-            <tr>
-                <td>{{ product.product_label }}</td>
-                <td>{{ product.product_quantity }}</td>
-                <td>{{ product.product_price_per_unit }}</td>
-                <td>{{ product.product_total_price }}</td>
-                <td>{{ product_price_per_participant|get_item:product.product_id }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<h2>Products:</h2>
+<table border="1">
+    <thead>
+    <tr>
+        <th>Product Label</th>
+        <th>Quantity</th>
+        <th>Unit Price</th>
+        <th>Total Price</th>
+        <th>Price per Person</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for product in products %}
+        <tr>
+            <td>{{ product.product_label }}</td>
+            <td>{{ product.product_quantity }}</td>
+            <td>{{ product.product_price_per_unit }}</td>
+            <td>{{ product.product_total_price }}</td>
+            <td class="price-per-person"
+                id="price-per-person-{{ product.product_id }}">{{ product_price_per_participant|get_item:product.product_id }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
 
-    <h2>Participants:</h2>
-    <table border="1">
-        <thead>
-            <tr>
-                <th>Participant Name</th>
-                {% for product in products %}
-                <th>{{ product.product_label }}</th>
-                {% endfor %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for participant in participants %}
+<h2>Participants:</h2>
+<table border="1">
+    <thead>
+    <tr>
+        <th>Participant Name</th>
+        {% for product in products %}
+            <th>{{ product.product_label }}</th>
+        {% endfor %}
+        <th>Total</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for participant in participants %}
+        {% with participant_id=participant.participant_id %}
             <tr>
                 <td>{{ participant.participant_name }}</td>
                 {% for product in products %}
-                <td>
-                    <input type="checkbox" name="participant{{ participant.participant_id }}_product{{ product.product_id }}" {% if participant_product_contribution.participant.participant_id.product.product_id %}checked{% endif %} onchange="updateContribution({{ participant.participant_id }}, {{ product.product_id }}, this.checked)">
-                </td>
+                    {% with product_id=product.product_id %}
+                        <td>
+                            <label>
+                                <input type="checkbox"
+                                       id="checkbox-{{ participant_id }}-{{ product_id }}"
+                                       {% if participants_products_contribution|get_item:product_id|get_item:participant_id %}checked
+                                       {% endif %}
+                                       onchange="updateCostsAndPrices({{ participant.participant_id }}, {{ product.product_id }}, {{ bill.bill_id }}, this.checked)">
+                            </label>
+                        </td>
+                    {% endwith %}
                 {% endfor %}
+                <td id="participant-total-cost-{{ participant_id }}">{{ participants_total_cost|get_item:participant_id }}</td>
             </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+        {% endwith %}
+    {% endfor %}
+    </tbody>
+</table>
 
-    <script>
-        function updateContribution(participantId, productId, isChecked) {
-            // Ajoutez votre logique JavaScript pour mettre à jour la contribution du participant
-            // Vous pouvez appeler une API backend pour mettre à jour la valeur dans la base de données
+<script>
+    async function updateContribution(participantId, productId, bill_id, isChecked) {
+        try {
+            // Envoyer une requête AJAX vers votre vue Django
+            const response = await fetch(`/bill/${bill_id}/participant/${participantId}/update-contribution/`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'  // Assurez-vous d'avoir le jeton CSRF dans votre template
+                },
+                body: JSON.stringify({
+                    product_id: productId,
+                    contribution: isChecked
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+
+            const data = await response.json();
+            console.log(data);  // Affichez les données renvoyées par votre vue Django
+
+            const pricePerPersonElement = document.getElementById(`price-per-person-${productId}`);
+            pricePerPersonElement.textContent = data.new_price;  // Supposons que vous recevez le nouveau prix par personne depuis la vue Django
+        } catch (error) {
+            console.error('There was an error!', error);
         }
-    </script>
+    }
+
+    async function updateParticipantsTotalCost(bill_id, participantId) {
+        try {
+            // Envoyer une requête AJAX vers votre vue Django
+            const response = await fetch(`/bill/${bill_id}/participants/total/`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'  // Assurez-vous d'avoir le jeton CSRF dans votre template
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+
+            const data = await response.json();
+            console.log(data);  // Affichez les données renvoyées par votre vue Django
+
+            Object.keys(data).forEach((participant) => {
+                const participantsTotalCost = document.getElementById(`participant-total-cost-${participant}`);
+                participantsTotalCost.textContent = data[participant];  // Supposons que vous recevez le nouveau prix par personne depuis la vue Django  
+            })
+        } catch (error) {
+            console.error('There was an error!', error);
+        }
+    }
+
+    async function updateCostsAndPrices(participantId, productId, bill_id, isChecked) {
+        try {
+            await updateContribution(participantId, productId, bill_id, isChecked)
+            updateParticipantsTotalCost(bill_id, participantId)
+        } catch (error) {
+            console.log(error)
+        }
+    }
+</script>
 </body>
 </html>
