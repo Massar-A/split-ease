@@ -1,4 +1,5 @@
 {% load custom_filters %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -21,21 +22,56 @@
         <th>Unit Price</th>
         <th>Total Price</th>
         <th>Price per Person</th>
+        <th>Action</th> <!-- Ajouter une colonne pour le bouton Modifier -->
     </tr>
     </thead>
     <tbody>
     {% for product in products %}
-        <tr>
-            <td>{{ product.product_label }}</td>
-            <td>{{ product.product_quantity }}</td>
-            <td>{{ product.product_price_per_unit }}</td>
-            <td>{{ product.product_total_price }}</td>
+        <tr id="product-row-{{ product.product_id }}">
+            <td id="product-label-{{ product.product_id }}">{{ product.product_label }}</td>
+            <td id="product-quantity-{{ product.product_id }}">{{ product.product_quantity }}</td>
+            <td id="product-price-{{ product.product_id }}">{{ product.product_price_per_unit }}</td>
+            <td id="product-total-price-{{ product.product_id }}">{{ product.product_total_price }}</td>
             <td class="price-per-person"
                 id="price-per-person-{{ product.product_id }}">{{ product_price_per_participant|get_item:product.product_id }}</td>
+            <td>
+                <!-- Bouton Modifier pour chaque ligne produit -->
+                <button onclick="editProduct({{ product.product_id }})">Modifier</button>
+                <button onclick="deleteProduct({{ product.product_id }})">Supprimer</button>
+                <div id="product-action-buttons-{{ product.product_id }}" style="display: none;">
+                    <!-- Boutons Valider et Annuler pour chaque ligne produit -->
+                    <button onclick="saveProductChanges({{ product.product_id }}, {{ bill.bill_id }}, {{ csrftoken }})">Valider</button>
+                    <button onclick="cancelProductEdit()">Annuler</button>
+                </div>
+            </td>
         </tr>
     {% endfor %}
+    <tr>
+        <td class="new-product-row" style="display: none;"><input type="text"
+                                                                  id="new-product-label"
+                                                                  placeholder="Product Label">
+        </td>
+        <td class="new-product-row" style="display: none;"><input type="number"
+                                                                  id="new-product-quantity"
+                                                                  placeholder="Quantity"></td>
+        <td class="new-product-row" style="display: none;">
+        </td>
+        <td class="new-product-row" style="display: none;"><input type="number"
+                                                                  id="new-product-total-price"
+                                                                  placeholder="Total Price">
+        </td>
+        <td class="new-product-row" style="display: none;"></td>
+        <td class="new-product-row" style="display: none;">
+            <button onclick="addNewProduct({{ bill.bill_id }}, {{ csrftoken }})">Valider</button>
+            <button onclick="cancelNewProduct()">Annuler</button>
+        </td>
+    </tr>
     </tbody>
 </table>
+<button onclick="showNewProductRow()">Ajouter un produit</button>
+<div class="new-product-row" style="display: none;">
+
+</div>
 
 <h2>Participants:</h2>
 <table border="1">
@@ -43,7 +79,7 @@
     <tr>
         <th>Participant Name</th>
         {% for product in products %}
-            <th>{{ product.product_label }}</th>
+            <th id="product-head-{{ product.product_id }}">{{ product.product_label }}</th>
         {% endfor %}
         <th>Total</th>
     </tr>
@@ -51,7 +87,7 @@
     <tbody>
     {% for participant in participants %}
         {% with participant_id=participant.participant_id %}
-            <tr>
+            <tr id="row-participant-{{ participant.participant_id }}">
                 <td>{{ participant.participant_name }}</td>
                 {% for product in products %}
                     {% with product_id=product.product_id %}
@@ -72,72 +108,13 @@
     {% endfor %}
     </tbody>
 </table>
+<button onclick="showNewParticipantRow()">Ajouter un participant</button>
+<div class="new-participant-row" style="display: none;">
+    <button onclick="addNewProduct()">Valider</button>
+    <button onclick="cancelNewProduct()">Annuler</button>
+</div>
 
-<script>
-    async function updateContribution(participantId, productId, bill_id, isChecked) {
-        try {
-            // Envoyer une requête AJAX vers votre vue Django
-            const response = await fetch(`/bill/${bill_id}/participant/${participantId}/update-contribution/`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}'  // Assurez-vous d'avoir le jeton CSRF dans votre template
-                },
-                body: JSON.stringify({
-                    product_id: productId,
-                    contribution: isChecked
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-
-            const data = await response.json();
-            console.log(data);  // Affichez les données renvoyées par votre vue Django
-
-            const pricePerPersonElement = document.getElementById(`price-per-person-${productId}`);
-            pricePerPersonElement.textContent = data.new_price;  // Supposons que vous recevez le nouveau prix par personne depuis la vue Django
-        } catch (error) {
-            console.error('There was an error!', error);
-        }
-    }
-
-    async function updateParticipantsTotalCost(bill_id, participantId) {
-        try {
-            // Envoyer une requête AJAX vers votre vue Django
-            const response = await fetch(`/bill/${bill_id}/participants/total/`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}'  // Assurez-vous d'avoir le jeton CSRF dans votre template
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-
-            const data = await response.json();
-            console.log(data);  // Affichez les données renvoyées par votre vue Django
-
-            Object.keys(data).forEach((participant) => {
-                const participantsTotalCost = document.getElementById(`participant-total-cost-${participant}`);
-                participantsTotalCost.textContent = data[participant];  // Supposons que vous recevez le nouveau prix par personne depuis la vue Django  
-            })
-        } catch (error) {
-            console.error('There was an error!', error);
-        }
-    }
-
-    async function updateCostsAndPrices(participantId, productId, bill_id, isChecked) {
-        try {
-            await updateContribution(participantId, productId, bill_id, isChecked)
-            updateParticipantsTotalCost(bill_id, participantId)
-        } catch (error) {
-            console.log(error)
-        }
-    }
+<script type="text/javascript" src={% static "./script.js" %}>
 </script>
 </body>
 </html>

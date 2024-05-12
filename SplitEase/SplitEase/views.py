@@ -1,19 +1,18 @@
 import json
 
 from django.core import serializers
-from django.http import JsonResponse, Http404
+from django.http import JsonResponse, Http404, HttpResponseBadRequest, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework import status
 
 from .models import Bill, Product, Participant
 from .controllers import bill_controller
 from .controllers import participant_controller
 from .controllers import product_controller
-from .serializers import BillSerializer
+from .controllers import pdf_controller
+from .serializers import BillSerializer, ProductSerializer
 
 
 @csrf_exempt
@@ -23,14 +22,52 @@ def create_new_bill(request):
 
 
 @csrf_exempt
-def create_product(request):
+def create_product(request, bill_id):
     if request.method == 'POST':
-        return JsonResponse({'product': product_controller.create_product('Filet de poulet',
-                                                                          35.06,
-                                                                          3,
-                                                                          Bill.objects.filter(bill_id=1).first())})
+        body = json.loads(request.body)
+        required_fields = ['product_label', 'product_price', 'quantity']
+
+        if not all(field in body for field in required_fields):
+            return HttpResponseBadRequest('Missing required fields')
+        new_product = product_controller.create_product(body['product_label'],
+                                                        body['product_price'],
+                                                        body['quantity'],
+                                                        bill_controller.get_bill_by_id(bill_id))
+        serializer = ProductSerializer(new_product)
+        return JsonResponse({'new_product': serializer.data})
     else:
         return JsonResponse({'success': False, 'error': 'Only POST requests are allowed'})
+
+
+@csrf_exempt
+def update_product(request, bill_id, product_id):
+    if request.method == 'PUT':
+        body = json.loads(request.body)
+        required_fields = ['product_label', 'product_price', 'quantity']
+
+        if not all(field in body for field in required_fields):
+            return HttpResponseBadRequest('Missing required fields')
+        updated_product = product_controller.update_product(body['product_label'],
+                                                            body['product_price'],
+                                                            body['quantity'],
+                                                            bill_controller.get_bill_by_id(bill_id),
+                                                            product_id)
+        serializer = ProductSerializer(product_controller.get_product_by_product_id(product_id))
+        return JsonResponse(serializer.data)
+    else:
+        return JsonResponse({'success': False, 'error': 'Only POST requests are allowed'})
+
+@csrf_exempt
+def delete_product(request, product_id):
+    if request.method == 'DELETE':
+        try:
+            print(product_id)
+            product_controller.delete_product(product_id)
+            return JsonResponse({'success': True})
+        except:
+            return JsonResponse({'success': False})
+    else:
+        JsonResponse({'success': False, 'error': 'Only DELETE requests are allowed'})
 
 
 @csrf_exempt
@@ -167,7 +204,7 @@ def bill_details(request, bill_id):
                     product.product_id,
                     bill_id)
         bill_total = bill.get_bill_amount()
-
+        print(participants_total_cost)
         return render(request, 'bill_details.html', {
             'bill': bill,
             'products': products,
@@ -179,3 +216,12 @@ def bill_details(request, bill_id):
         })
     except Bill.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Bill does not exist'})
+
+@csrf_exempt
+def upload_file(request):
+    if request.method == 'POST':
+        file = request.FILES['file']
+        return HttpResponse(pdf_controller.readTest(file))
+def get_script(request):
+    if request.method == 'GET':
+        return

@@ -57,7 +57,7 @@ def get_participant_total_cost(participant_id, bill_id):
         contributed_products = get_participants_contributions(participant_id, bill_id)
         for product in contributed_products:
             total_cost += float(product_controller.get_price_per_participant(product, bill_id))
-        return "%.2f" % round(total_cost, 2)
+        return ("%.2f" % round(total_cost, 2)).replace('.', ',')
     except Exception as e:
         return str(e)
 
