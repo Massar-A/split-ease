@@ -23,11 +23,10 @@ def get_bill_total_amount(bill_id):
         return Exception("Something went wrong")
 
 
-def create_new_bill():
+def create_new_bill(bill_date):
     try:
-        new_bill = Bill.objects.create(bill_date=date.today(), bill_active=True)
-        product_controller.add_product_to_bill(new_bill)
-        return new_bill.bill_id
+        new_bill = Bill.objects.create(bill_date=bill_date, bill_active=True)
+        return new_bill
     except:
         return Exception("Something went wrong")
 

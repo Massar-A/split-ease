@@ -1,17 +1,17 @@
 import json
 
-from django.core import serializers
 from django.http import JsonResponse, Http404, HttpResponseBadRequest, HttpResponse
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework import status
 
+from .picnic import picnic_main
+from .receipt import image_text_extraction
 from .models import Bill, Product, Participant
 from .controllers import bill_controller
 from .controllers import participant_controller
 from .controllers import product_controller
-from .controllers import pdf_controller
 from .serializers import BillSerializer, ProductSerializer
 
 
@@ -220,8 +220,64 @@ def bill_details(request, bill_id):
 @csrf_exempt
 def upload_file(request):
     if request.method == 'POST':
+        if 'picnic_file' in request.FILES:
+            file = request.FILES['picnic_file']
+            return bill_details('GET', picnic_main.create_picnic_bill(file))
+        elif 'img' in request.FILES:
+            file = request.FILES['img']
+            return JsonResponse(picnic_main.analyze_picnic(file), safe=False)
+        else:
+            return HttpResponseBadRequest('Missing required pdf file ou image')
+    else:
+        return HttpResponseBadRequest('Only POST requests are allowed')
+
+@csrf_exempt
+def upload_file(request):
+    if request.method == 'POST':
+        date = request.POST.get('date')
+        if 'picnic_file' in request.FILES:
+            file = request.FILES['picnic_file']
+            return JsonResponse({'success': True,
+                                 'new_bill_id': picnic_main.create_picnic_bill(file, date)})
+        elif 'img' in request.FILES:
+            file = request.FILES['img']
+            return JsonResponse(picnic_main.analyze_picnic(file), safe=False)
+        else:
+            return HttpResponseBadRequest('Missing required pdf file ou image')
+    else:
+        return HttpResponseBadRequest('Only POST requests are allowed')
+
+
+@csrf_exempt
+def upload_file_test(request):
+    if request.method == 'POST':
+        if 'picnic_file' in request.FILES:
+            file = request.FILES['picnic_file']
+            return JsonResponse(picnic_main.analyze_picnic(file), safe=False)
+        elif 'img' in request.FILES:
+            file = request.FILES['img']
+            return JsonResponse(picnic_main.analyze_picnic(file), safe=False)
+        else:
+            return HttpResponseBadRequest('Missing required pdf file ou image')
+    else:
+        return HttpResponseBadRequest('Only POST requests are allowed')
+
+
+@csrf_exempt
+def read_test(request):
+    if request.method == 'POST':
         file = request.FILES['file']
-        return HttpResponse(pdf_controller.readTest(file))
-def get_script(request):
-    if request.method == 'GET':
-        return
+        return HttpResponse(picnic_main.read_text(file))
+
+def read_image_test(request):
+    if request.method == 'POST':
+        if 'picnic_file' in request.FILES:
+            file = request.FILES['picnic_file']
+            return JsonResponse(picnic_main.analyze_picnic(file), safe=False)
+        elif 'img' in request.FILES:
+            file = request.FILES['img']
+            return HttpResponse(image_text_extraction.read_test(file))
+        else:
+            return HttpResponseBadRequest('Missing required pdf file ou image')
+    else:
+        return HttpResponseBadRequest('Only POST requests are allowed')

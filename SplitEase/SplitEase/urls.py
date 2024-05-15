@@ -32,4 +32,6 @@ urlpatterns = [
     path("bill/create/", views.create_new_bill, name="create_bill"),
     path("product/<int:product_id>/delete/", views.delete_product, name="delete_product"),
     path("file/", views.upload_file, name="upload_file"),
+    path("file/test/", views.upload_file_test, name="read_test"),
+    path("file/text/", views.read_test, name="read_test")
 ]
