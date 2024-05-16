@@ -57,6 +57,7 @@ def update_product(request, bill_id, product_id):
     else:
         return JsonResponse({'success': False, 'error': 'Only POST requests are allowed'})
 
+
 @csrf_exempt
 def delete_product(request, product_id):
     if request.method == 'DELETE':
@@ -217,6 +218,7 @@ def bill_details(request, bill_id):
     except Bill.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Bill does not exist'})
 
+
 @csrf_exempt
 def upload_file(request):
     if request.method == 'POST':
@@ -230,6 +232,7 @@ def upload_file(request):
             return HttpResponseBadRequest('Missing required pdf file ou image')
     else:
         return HttpResponseBadRequest('Only POST requests are allowed')
+
 
 @csrf_exempt
 def upload_file(request):
@@ -262,18 +265,12 @@ def upload_file_test(request):
     else:
         return HttpResponseBadRequest('Only POST requests are allowed')
 
-
 @csrf_exempt
 def read_test(request):
     if request.method == 'POST':
-        file = request.FILES['file']
-        return HttpResponse(picnic_main.read_text(file))
-
-def read_image_test(request):
-    if request.method == 'POST':
         if 'picnic_file' in request.FILES:
             file = request.FILES['picnic_file']
-            return JsonResponse(picnic_main.analyze_picnic(file), safe=False)
+            return HttpResponse(picnic_main.read_text(file), safe=False)
         elif 'img' in request.FILES:
             file = request.FILES['img']
             return HttpResponse(image_text_extraction.read_test(file))
