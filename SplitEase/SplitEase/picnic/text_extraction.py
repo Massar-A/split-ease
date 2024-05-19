@@ -1,5 +1,4 @@
 from pypdf import PdfReader
-import re
 from .product_extraction import extract_products
 
 
