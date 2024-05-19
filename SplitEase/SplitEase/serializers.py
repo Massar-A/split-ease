@@ -6,7 +6,7 @@ from .models import Bill, Product, Participant
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ['product_id', 'product_label', 'product_quantity', 'product_total_price', 'product_price_per_unit']
+        fields = ['product_id', 'product_label', 'product_quantity', 'product_total_price', 'product_price_per_unit', 'product_bill']
 
 
 class ParticipantSerializer(serializers.ModelSerializer):
@@ -21,4 +21,4 @@ class BillSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Bill
-        fields = ['bill_id', 'bill_date', 'bill_active', 'products', 'participants']
+        fields = ['bill_id', 'bill_date', 'bill_active', 'bill_payer', 'participants', 'products']

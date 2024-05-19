@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accueil</title>
+</head>
+<body>
+    <h1>SplitEase</h1>
+    <form id="upload-form" enctype="multipart/form-data">
+        <label for="date">Date des courses :</label>
+        <input type="date" id="date" name="date" required><br><br>
+        
+        <label for="picnic_file">Sélectionner un fichier :</label>
+        <input type="file" id="picnic_file" name="picnic_file" accept=".pdf" required><br><br>
+        
+        <button type="submit">Envoyer</button>
+    </form>
+
+    <script>
+        const form = document.getElementById('upload-form');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch('/file/', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const responseData = await response.json();
+
+                if (responseData.success) {
+                    window.location.href = `/bill/${responseData.new_bill_id}/view/`;
+                } else {
+                    alert('Une erreur est survenue lors du traitement du fichier.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Une erreur est survenue lors de l\'envoi de la requête.');
+            }
+        });
+    </script>
+</body>
+</html>

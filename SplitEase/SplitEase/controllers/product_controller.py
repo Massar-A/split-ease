@@ -10,6 +10,19 @@ def create_product(product_label, product_price, quantity, product_bill):
     )
 
 
+def update_product(product_label, product_price, quantity, product_bill, product_id):
+    return Product.objects.filter(product_id=product_id).update(product_bill=product_bill, product_quantity=quantity,
+                                                                product_total_price=product_price,
+                                                                product_label=product_label,
+                                                                product_price_per_unit=product_price / quantity)
+
+def delete_product(product_id):
+    try:
+        return Product.objects.filter(product_id=product_id).delete()
+    except:
+        return Exception('Something went wrong')
+
+
 def add_product_to_bill(product_bill):
     product_data = [
         {'product_label': 'Produit 7', 'product_quantity': 7, 'product_price': 15.99},
