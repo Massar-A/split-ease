@@ -12,13 +12,23 @@ from .models import Bill, Product, Participant
 from .controllers import bill_controller
 from .controllers import participant_controller
 from .controllers import product_controller
-from .serializers import BillSerializer, ProductSerializer
+from .serializers import BillSerializer, ProductSerializer, ParticipantSerializer
 
 
 @csrf_exempt
 def create_new_bill(request):
     if request.method == 'POST':
         return JsonResponse({'bill_id': bill_controller.create_new_bill()})
+
+
+@csrf_exempt
+def set_bill_payer(request, bill_id):
+    if request.method == 'PUT':
+        participant_id = json.loads(request.body)['participant_id']
+        bill_controller.set_bill_payer(bill_id, participant_id)
+        return JsonResponse({'bill_id': bill_id})
+    else:
+        return JsonResponse({'Error': 'Only PUT is allowed'})
 
 
 @csrf_exempt
@@ -72,37 +82,11 @@ def delete_product(request, product_id):
 
 
 @csrf_exempt
-def add_new_bill_with_products(request):
-    if request.method == 'POST':
-        # Création d'une nouvelle facture
-        new_bill = Bill.objects.create(bill_date='2024-04-08', bill_active=True)
-
-        # Ajout de nouveaux produits à la facture
-        product_data = [
-            {'product_label': 'Produit 4', 'product_quantity': 8, 'product_price': 10.99},
-            {'product_label': 'Produit 5', 'product_quantity': 3, 'product_price': 1.99},
-            {'product_label': 'Produit 6', 'product_quantity': 1, 'product_price': 25.76},
-        ]
-
-        for data in product_data:
-            Product.objects.create(
-                product_label=data['product_label'],
-                product_quantity=data['product_quantity'],
-                product_price=data['product_price'],
-                product_bill=new_bill
-            )
-
-        return JsonResponse({'success': True, 'message': 'New bill with products added successfully'})
-    else:
-        return JsonResponse({'success': False, 'error': 'Only POST requests are allowed'})
-
-
-@csrf_exempt
 def add_participant_to_bill(request):
     if request.method == 'POST':
         body = json.loads(request.body)
         new_participant = participant_controller.create_participant(body['name'], body['bill_id'])
-        return JsonResponse({'success': True, 'new_participant': new_participant})
+        return JsonResponse(ParticipantSerializer(new_participant).data)
     else:
         return JsonResponse({'success': False, 'error': 'Only POST requests are allowed'})
 
@@ -143,6 +127,33 @@ def delete_participant(request, participant_id):
         JsonResponse({'success': False, 'error': 'Only DELETE requests are allowed'})
 
 
+@csrf_exempt
+def update_participant(request, participant_id):
+    if request.method == 'PUT':
+        body = json.loads(request.body)
+        required_fields = ['participant_name']
+
+        if not all(field in body for field in required_fields):
+            return HttpResponseBadRequest('Missing required fields')
+        updated_participant = participant_controller.update_participant(participant_id, body['participant_name'])
+        print(updated_participant)
+        serializer = ParticipantSerializer(participant_controller.get_participant_by_participant_id(participant_id))
+        return JsonResponse(serializer.data)
+    else:
+        return JsonResponse({'success': False, 'error': 'Only POST requests are allowed'})
+
+
+@csrf_exempt
+def get_participants(request, bill_id):
+    if request.method == 'GET':
+
+        participants = participant_controller.get_participants_by_bill_id(bill_id)
+        serializer = ParticipantSerializer(participants, many=True)
+        return JsonResponse(serializer.data, safe=False)
+    else:
+        return JsonResponse({'success': False, 'error': 'Only POST requests are allowed'})
+
+
 def get_price_per_participant(request, product_id, bill_id):
     if request.method == 'GET':
         return JsonResponse(
@@ -164,6 +175,22 @@ def get_participants_total_cost(request, bill_id):
             return JsonResponse({'success': False, 'error': str(e)})
 
 
+def get_price_per_person(request, bill_id):
+    if request.method == 'GET':
+        try:
+            products = product_controller.get_products_by_bill_id(bill_id)
+            product_price_per_participant = dict()
+            for product in products:
+                product_price_per_participant[product.product_id] = product_controller.get_price_per_participant(
+                    product.product_id,
+                    bill_id)
+            return JsonResponse(product_price_per_participant, safe=False)
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    else:
+        return JsonResponse({'success': False, 'error': 'Only GET is allowed'})
+
+
 def get_bill(request, bill_id):
     try:
         bill = Bill.objects.get(bill_id=bill_id)
@@ -183,8 +210,9 @@ def bill_details(request, bill_id):
 
         products = product_controller.get_products_by_bill_id(bill_id)
         product_price_per_participant = dict()
-        participants = Participant.objects.filter(participant_bill=bill_id)
-
+        participants = list(participant_controller.get_participants_by_bill_id(bill_id))
+        print(products)
+        print(participants)
         participants_products_contribution = dict()
 
         participants_total_cost = dict()
@@ -204,19 +232,29 @@ def bill_details(request, bill_id):
                 product_price_per_participant[product.product_id] = product_controller.get_price_per_participant(
                     product.product_id,
                     bill_id)
-        bill_total = bill.get_bill_amount()
         print(participants_total_cost)
+        participants_total = sum(float(value.replace(',', '.')) for value in participants_total_cost.values())
+        bill_total = bill.get_bill_amount()
         return render(request, 'bill_details.html', {
             'bill': bill,
             'products': products,
             'product_price_per_participant': product_price_per_participant,
             'participants_products_contribution': participants_products_contribution,
             'participants_total_cost': participants_total_cost,
+            'participants_total': participants_total,
             'participants': participants,
-            'bill_total': bill_total
+            'bill_total': bill_total,
+            'csrf_token': "wsh"
         })
     except Bill.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Bill does not exist'})
+
+
+def index(request):
+    if request.method == 'GET':
+        return render(request, 'index.html')
+    else:
+        return JsonResponse({'success': False, 'error': 'Only GET is allowed'})
 
 
 @csrf_exempt
@@ -264,6 +302,7 @@ def upload_file_test(request):
             return HttpResponseBadRequest('Missing required pdf file ou image')
     else:
         return HttpResponseBadRequest('Only POST requests are allowed')
+
 
 @csrf_exempt
 def read_test(request):

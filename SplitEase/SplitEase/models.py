@@ -9,6 +9,7 @@ class Bill(models.Model):
     bill_id = models.AutoField(primary_key=True)
     bill_date = models.DateField()
     bill_active = models.BooleanField()
+    bill_payer = models.IntegerField(null=True)
 
     def get_bill_amount(self):
         bill_products = Product.objects.filter(product_bill=self.bill_id)

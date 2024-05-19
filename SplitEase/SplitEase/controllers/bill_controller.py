@@ -36,3 +36,10 @@ def delete_bill(bill_id):
         return Bill.objects.filter(bill_id=bill_id).update(bill_active=False)
     except:
         return Exception('Something went wrong')
+
+
+def set_bill_payer(bill_id, participant_id):
+    try:
+        return Bill.objects.filter(bill_id=bill_id).update(bill_payer=participant_id)
+    except:
+        return Exception('Something went wrong')

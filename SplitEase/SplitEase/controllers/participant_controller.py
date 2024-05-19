@@ -11,7 +11,7 @@ def create_participant(name, bill_id):
             products = product_controller.get_products_by_bill_id(bill_id)
             for product in products:
                 participant_contribute(participant, product, False, bill_id)
-            return participant.participant_id
+            return participant
         else:
             return Exception('Bill does not exist')
     except:
@@ -23,6 +23,10 @@ def delete_participant(participant_id):
         return Participant.objects.filter(participant_id=participant_id).delete()
     except:
         return Exception('Something went wrong')
+
+
+def update_participant(participant_id, participant_name):
+    return Participant.objects.filter(participant_id=participant_id).update(participant_name=participant_name)
 
 
 def participant_contribute(participant, product, contribution, bill_id):
