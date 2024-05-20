@@ -34,7 +34,7 @@
                 const responseData = await response.json();
 
                 if (responseData.success) {
-                    window.location.href = `/bill/${responseData.new_bill_id}/view/`;
+                    window.location.href = `/splitease/bill/${responseData.new_bill_id}/view/`;
                 } else {
                     alert('Une erreur est survenue lors du traitement du fichier.');
                 }

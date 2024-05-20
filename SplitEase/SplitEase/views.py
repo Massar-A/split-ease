@@ -233,7 +233,7 @@ def bill_details(request, bill_id):
                     product.product_id,
                     bill_id)
         print(participants_total_cost)
-        participants_total = sum(float(value.replace(',', '.')) for value in participants_total_cost.values())
+        participants_total = round(sum(float(value.replace(',', '.')) for value in participants_total_cost.values()),2)
         bill_total = bill.get_bill_amount()
         return render(request, 'bill_details.html', {
             'bill': bill,

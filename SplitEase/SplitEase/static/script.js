@@ -1,7 +1,7 @@
 async function updateContribution(participantId, productId, bill_id, isChecked, csrfToken) {
     try {
         // Envoyer une requête AJAX vers votre vue Django
-        const response = await fetch(`/bill/${bill_id}/participant/${participantId}/update-contribution/`, {
+        const response = await fetch(`/splitease/bill/${bill_id}/participant/${participantId}/update-contribution/`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
@@ -29,7 +29,7 @@ async function updateContribution(participantId, productId, bill_id, isChecked, 
 async function updateParticipantsTotalCost(billId, csrfToken) {
     try {
         // Envoyer une requête AJAX vers votre vue Django
-        const response = await fetch(`/bill/${billId}/participants/total/`, {
+        const response = await fetch(`/splitease/bill/${billId}/participants/total/`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -62,7 +62,7 @@ async function updateCostsAndPrices(participantId, productId, bill_id, isChecked
 }
 
 async function updatePricesPerPerson(billId, csrfToken) {
-    const response = await fetch('/bill/' + billId + '/price-per-person/', {
+    const response = await fetch('/splitease/bill/' + billId + '/price-per-person/', {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -128,7 +128,7 @@ async function addNewProduct(billId, csrfToken) {
             quantity: parseInt(quantityInput.value)
         };
 
-        const response = await fetch('/bill/' + billId + '/product/', {
+        const response = await fetch('/splitease/bill/' + billId + '/product/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -141,7 +141,7 @@ async function addNewProduct(billId, csrfToken) {
             throw new Error('Network response was not ok');
         }
 
-        const participantResponse = await fetch('/bill/' + billId + '/participants/', {
+        const participantResponse = await fetch('/splitease/bill/' + billId + '/participants/', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -228,7 +228,7 @@ function addProductRowParticipantTable(newProduct, billId, participants, csrfTok
 async function deleteProduct(productId, billId, csrfToken) {
     try {
 
-        const response = await fetch('/product/' + productId + '/delete/', {
+        const response = await fetch('/splitease/product/' + productId + '/delete/', {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -316,7 +316,7 @@ async function saveProductChanges(productId, billId, csrfToken) {
         quantity: parseInt(newQuantity)
     };
     console.log(data)
-    const response = await fetch('/bill/' + billId + '/product/' + productId + '/update/', {
+    const response = await fetch('/splitease/bill/' + billId + '/product/' + productId + '/update/', {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -373,7 +373,7 @@ async function saveParticipantChanges(participantId, csrfToken) {
     const data = {
         participant_name: newName.trim()
     };
-    const response = await fetch('/participant/' + participantId + '/', {
+    const response = await fetch('/splitease/participant/' + participantId + '/', {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -437,7 +437,7 @@ async function addNewParticipant(billId, csrfToken) {
             bill_id: billId
         };
 
-        const response = await fetch('/participant/create/', {
+        const response = await fetch('/splitease/participant/create/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -507,7 +507,7 @@ function addParticipantCol(newParticipant, billId, csrfToken) {
 async function deleteParticipant(billId, participantId, csrfToken) {
     try {
 
-        const response = await fetch('/participant/' + participantId, {
+        const response = await fetch('/splitease/participant/' + participantId, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -575,7 +575,7 @@ async function setPayer(participantId, billId, csrfToken) {
         const body = {
             participant_id: participantId
         }
-        const response = await fetch('/bill/' + billId + '/set-payer/', {
+        const response = await fetch('/splitease/bill/' + billId + '/set-payer/', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
