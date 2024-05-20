@@ -21,6 +21,7 @@ def extract_products(page_text, list_of_articles):
 
     # Séparer les blocs de produits en fonction de la présence du mot "Réduction"
     product_blocks = re.split(r'(?=\n \n(?:\d+\s.*)+\n(?!.*réduction))', page_text)
+    print(product_blocks)
     for block in product_blocks:
         # Ignorer les blocs qui commencent par les mots clés spécifiés
         if any(keyword in block for keyword in
@@ -28,7 +29,14 @@ def extract_products(page_text, list_of_articles):
             continue
         block = re.sub(r'\n \n', '', block)
         if 'new_page' in block:
+            print(block)
             block = re.sub(r'[0-9]+new_page\n\n(\d+\.\d{2}\n*)*', '', block)
+            print(block)
+        # Expression régulière pour supprimer la partie indésirable
+        regex = r"Articles retournés en consigne.*"
+
+        # Supprimer la partie indésirable du texte
+        block = re.sub(regex, "", block, flags=re.DOTALL)
         if 'Total' in block:
             return list_of_articles
         lines = block.split('\n')
@@ -38,7 +46,7 @@ def extract_products(page_text, list_of_articles):
             refund = float(lines[2].replace("Remboursement", ""))
             remove_item_from_product_list(list_of_articles, name, quantity, refund)
         else:
-            if not any(keyword in block for keyword in ['réduction', 'offert', 'gratuit', 'sur le']):
+            if not any(keyword in block for keyword in ['réduction', 'offert', 'gratuit', 'sur le', 'moitié prix']):
                 list_of_articles.append({
                     'quantity': quantity,
                     'name': name.strip(),

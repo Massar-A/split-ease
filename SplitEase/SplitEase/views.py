@@ -309,7 +309,7 @@ def read_test(request):
     if request.method == 'POST':
         if 'picnic_file' in request.FILES:
             file = request.FILES['picnic_file']
-            return HttpResponse(picnic_main.read_text(file), safe=False)
+            return HttpResponse(picnic_main.read_text(file))
         elif 'img' in request.FILES:
             file = request.FILES['img']
             return HttpResponse(image_text_extraction.read_test(file))
