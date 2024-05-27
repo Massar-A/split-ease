@@ -4,15 +4,58 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Accueil</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input[type="date"],
+        input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
 </head>
 <body>
     <h1>SplitEase</h1>
     <form id="upload-form" enctype="multipart/form-data">
         <label for="date">Date des courses :</label>
-        <input type="date" id="date" name="date" required><br><br>
+        <input type="date" id="date" name="date" required>
         
         <label for="picnic_file">Sélectionner un fichier :</label>
-        <input type="file" id="picnic_file" name="picnic_file" accept=".pdf" required><br><br>
+        <input type="file" id="picnic_file" name="picnic_file" accept=".pdf" required>
         
         <button type="submit">Envoyer</button>
     </form>

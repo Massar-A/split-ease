@@ -42,7 +42,10 @@ async function updateParticipantsTotalCost(billId, csrfToken) {
         }
 
         const data = await response.json();
+        console.log(data)
         Object.keys(data).forEach((participant) => {
+            console.log(participant)
+            console.log(document.getElementById(`participant-total-cost-${participant}`))
             const participantsTotalCost = document.getElementById(`participant-total-cost-${participant}`);
             participantsTotalCost.textContent = data[participant].replace(/\./g, ',');  // Supposons que vous recevez le nouveau prix par personne depuis la vue Django
         })
@@ -185,12 +188,12 @@ function addProductRow(newProduct, billId, csrfToken) {
             <td class="price-per-person" id="price-per-person-${newProduct.product_id}">N/A</td>
             <td>
                 <!-- Bouton Modifier pour chaque ligne produit -->
-                <button onclick="editProduct(${newProduct.product_id})">Modifier</button>
-                <button onclick="deleteProduct(${newProduct.product_id}, ${billId}, ${csrfToken})">Supprimer</button>
+                <button class="button-secondary" onclick="editProduct(${newProduct.product_id})">Modifier</button>
+                <button class="button-danger" onclick="deleteProduct(${newProduct.product_id}, ${billId}, '${csrfToken}')">Supprimer</button>
                 <div id="product-action-buttons-${newProduct.product_id}" style="display: none;">
                     <!-- Boutons Valider et Annuler pour chaque ligne produit -->
-                    <button onclick="saveProductChanges(${newProduct.product_id}, ${billId}, ${csrfToken})">Valider</button>
-                    <button onclick="cancelProductEdit()">Annuler</button>
+                    <button class="button-secondary" onclick="saveProductChanges(${newProduct.product_id}, ${billId}, ${csrfToken})">Valider</button>
+                    <button class="button-danger" onclick="cancelProductEdit()">Annuler</button>
                 </div>
             </td>
         `;
@@ -272,7 +275,7 @@ function cancelNewProduct() {
     // Parcourir chaque élément et inverser son état d'affichage
     for (let i = 0; i < newProductRows.length; i++) {
         const row = newProductRows[i];
-        if (row.style.display === "table-cell") {
+        if (row.style.display === "table-row") {
             row.style.display = "none";
         }
         row.value = ''
@@ -287,17 +290,26 @@ function showNewProductRow() {
     for (let i = 0; i < newProductRows.length; i++) {
         const row = newProductRows[i];
         if (row.style.display === "none") {
-            row.style.display = "table-cell";
+            row.style.display = "table-row";
         }
     }
 }
 
 function editProduct(productId) {
+    // Stocker les valeurs initiales
+    const initialLabel = document.getElementById(`product-label-${productId}`).innerText;
+    const initialQuantity = document.getElementById(`product-quantity-${productId}`).innerText;
+    const initialTotalPrice = document.getElementById(`product-total-price-${productId}`).innerHTML.replace(/,/g, '.');
+
+    // Ajouter les valeurs initiales dans les attributs de données des éléments
+    document.getElementById(`product-label-${productId}`).setAttribute('data-initial-value', initialLabel);
+    document.getElementById(`product-quantity-${productId}`).setAttribute('data-initial-value', initialQuantity);
+    document.getElementById(`product-total-price-${productId}`).setAttribute('data-initial-value', initialTotalPrice);
+
     // Afficher les champs d'entrée pour modifier les valeurs
-    const totalPrice = document.getElementById(`product-total-price-${productId}`).innerHTML.replace(/,/g, '.')
-    document.getElementById(`product-label-${productId}`).innerHTML = `<input type="text" id="edit-product-label-${productId}" value="${document.getElementById(`product-label-${productId}`).innerText}">`;
-    document.getElementById(`product-quantity-${productId}`).innerHTML = `<input type="number" id="edit-product-quantity-${productId}" value="${document.getElementById(`product-quantity-${productId}`).innerText}">`;
-    document.getElementById(`product-total-price-${productId}`).innerHTML = `<input type="number" id="edit-product-total-price-${productId}" value="${totalPrice}">`;
+    document.getElementById(`product-label-${productId}`).innerHTML = `<input type="text" id="edit-product-label-${productId}" value="${initialLabel}">`;
+    document.getElementById(`product-quantity-${productId}`).innerHTML = `<input type="number" id="edit-product-quantity-${productId}" value="${initialQuantity}">`;
+    document.getElementById(`product-total-price-${productId}`).innerHTML = `<input type="number" id="edit-product-total-price-${productId}" value="${initialTotalPrice}">`;
 
     // Masquer le bouton Modifier et afficher les boutons Valider et Annuler
     document.getElementById(`product-action-buttons-${productId}`).style.display = 'block';
@@ -345,10 +357,15 @@ async function saveProductChanges(productId, billId, csrfToken) {
 }
 
 function cancelProductEdit(productId) {
+    // Restaurer les valeurs initiales depuis les attributs de données
+    const initialLabel = document.getElementById(`product-label-${productId}`).getAttribute('data-initial-value');
+    const initialQuantity = document.getElementById(`product-quantity-${productId}`).getAttribute('data-initial-value');
+    const initialTotalPrice = document.getElementById(`product-total-price-${productId}`).getAttribute('data-initial-value').replace(/\./g, ',');
+
     // Restaurer les valeurs initiales dans la ligne produit
-    document.getElementById(`product-label-${productId}`).innerHTML = document.getElementById(`edit-product-label-${productId}`).value;
-    document.getElementById(`product-quantity-${productId}`).innerHTML = document.getElementById(`edit-product-quantity-${productId}`).value;
-    document.getElementById(`product-total-price-${productId}`).innerHTML = document.getElementById(`edit-product-total-price-${productId}`).value.replace(/\./g, ',');
+    document.getElementById(`product-label-${productId}`).innerHTML = initialLabel;
+    document.getElementById(`product-quantity-${productId}`).innerHTML = initialQuantity;
+    document.getElementById(`product-total-price-${productId}`).innerHTML = initialTotalPrice;
 
     // Masquer les champs d'entrée et afficher le bouton Modifier
     document.getElementById(`product-action-buttons-${productId}`).style.display = 'none';
@@ -356,10 +373,16 @@ function cancelProductEdit(productId) {
 }
 
 function editParticipant(participantId) {
+    // Stocker les valeurs initiales
+    const initialName = document.getElementById(`participant-name-${participantId}`).innerText;
+
+    // Ajouter les valeurs initiales dans les attributs de données des éléments
+    document.getElementById(`participant-name-${participantId}`).setAttribute('data-initial-value', initialName);
+
     // Afficher les champs d'entrée pour modifier les valeurs
     document.getElementById(`participant-name-${participantId}`).innerHTML = `<input type="text" 
                                         id="edit-participant-name-${participantId}" 
-                                        value="${document.getElementById(`participant-name-${participantId}`).innerText}">`;
+                                        value="${initialName}">`;
 
     // Masquer le bouton Modifier et afficher les boutons Valider et Annuler
     document.getElementById(`participant-action-buttons-${participantId}`).style.display = 'block';
@@ -386,11 +409,11 @@ async function saveParticipantChanges(participantId, csrfToken) {
         throw new Error('Network response was not ok');
     }
 
-    // Récupérer le nouveau produit depuis la réponse JSON
+    // Récupérer le nouveau participant depuis la réponse JSON
     const newData = await response.json();
     console.log(newData)
 
-    // Mettre à jour les valeurs dans la ligne produit
+    // Mettre à jour les valeurs dans la ligne participant
     document.getElementById(`participant-name-${participantId}`).innerText = newData.participant_name;
 
     // Masquer les champs d'entrée et afficher le bouton Modifier
@@ -399,8 +422,11 @@ async function saveParticipantChanges(participantId, csrfToken) {
 }
 
 function cancelParticipantEdit(participantId) {
-    // Restaurer les valeurs initiales dans la ligne produit
-    document.getElementById(`participant-name-${participantId}`).innerHTML = document.getElementById(`edit-participant-name-${participantId}`).value;
+    // Restaurer les valeurs initiales depuis les attributs de données
+    const initialName = document.getElementById(`participant-name-${participantId}`).getAttribute('data-initial-value');
+
+    // Restaurer les valeurs initiales dans la ligne participant
+    document.getElementById(`participant-name-${participantId}`).innerHTML = initialName;
 
     // Masquer les champs d'entrée et afficher le bouton Modifier
     document.getElementById(`participant-action-buttons-${participantId}`).style.display = 'none';
@@ -475,11 +501,11 @@ function addParticipantCol(newParticipant, billId, csrfToken) {
     newHeaderCell.setAttribute('id', `participant-head-${newParticipant.participant_id}`);
     newHeaderCell.innerHTML = `
         <div id="participant-name-${newParticipant.participant_id}">${newParticipant.participant_name}</div>
-        <button onclick="editParticipant(${newParticipant.participant_id})">Modifier</button>
-        <button onclick="deleteParticipant(${billId}, ${newParticipant.participant_id})">Supprimer</button>
+        <button class="button-secondary" onclick="editParticipant(${newParticipant.participant_id})">Modifier</button>
+        <button class="button-danger" onclick="deleteParticipant(${billId}, ${newParticipant.participant_id})">Supprimer</button>
         <div id="participant-action-buttons-${newParticipant.participant_id}" style="display: none;">
-            <button onclick="saveParticipantChanges(${newParticipant.participant_id}, '${csrfToken}')">Valider</button>
-            <button onclick="cancelParticipantEdit(${newParticipant.participant_id})">Annuler</button>
+            <button class="button-secondary" onclick="saveParticipantChanges(${newParticipant.participant_id}, '${csrfToken}')">Valider</button>
+            <button class="button-danger" onclick="cancelParticipantEdit(${newParticipant.participant_id})">Annuler</button>
         </div>
     `;
     participantsTableHeadRow.insertBefore(newHeaderCell, participantsTableHeadRow.lastElementChild);
@@ -507,7 +533,7 @@ function addParticipantCol(newParticipant, billId, csrfToken) {
 async function deleteParticipant(billId, participantId, csrfToken) {
     try {
 
-        const response = await fetch('/splitease/participant/' + participantId, {
+        const response = await fetch('/splitease/participant/' + participantId +"/delete/", {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -519,10 +545,11 @@ async function deleteParticipant(billId, participantId, csrfToken) {
             throw new Error('Network response was not ok');
         }
 
-        removeParticipantCol(participantId);
-        removeParticipantOption(participantId)
         await updateParticipantsTotalCost(billId, csrfToken)
         await updatePricesPerPerson(billId, csrfToken)
+        removeParticipantCol(participantId);
+        removeParticipantOption(participantId)
+        refreshParticipantsTotal()
 
     } catch (error) {
         console.error('Error:', error);

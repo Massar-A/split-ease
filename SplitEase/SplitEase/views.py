@@ -140,7 +140,7 @@ def update_participant(request, participant_id):
         serializer = ParticipantSerializer(participant_controller.get_participant_by_participant_id(participant_id))
         return JsonResponse(serializer.data)
     else:
-        return JsonResponse({'success': False, 'error': 'Only POST requests are allowed'})
+        return JsonResponse({'success': False, 'error': 'Only PUT requests are allowed'})
 
 
 @csrf_exempt
