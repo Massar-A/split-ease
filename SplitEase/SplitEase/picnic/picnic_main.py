@@ -17,6 +17,7 @@ def analyze_picnic(file):
 def create_picnic_bill(file, date):
     products_list = analyze_picnic(file)
     bill = bill_controller.create_new_bill(date)
+    print(bill)
 
     for product in products_list:
         product_controller.create_product(product['name'], product['price'], product['quantity'], bill)
