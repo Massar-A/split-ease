@@ -19,9 +19,10 @@ from .serializers import BillSerializer, ProductSerializer, ParticipantSerialize
 def create_new_bill(request):
     date = request.POST.get('date')
     if request.method == 'POST':
-        bill = BillSerializer(bill_controller.create_new_bill(date))
+        bill = bill_controller.create_new_bill(date)
+        bill_to_display = BillSerializer(bill)
         return JsonResponse({
-            "bill": bill.data,
+            "bill": bill_to_display.data,
             "success": True
         })
 
