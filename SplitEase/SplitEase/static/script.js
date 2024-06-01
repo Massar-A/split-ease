@@ -182,9 +182,9 @@ function addProductRow(newProduct, billId, csrfToken) {
     // Remplir les cellules de la nouvelle ligne avec les informations du nouveau produit
     newRow.innerHTML = `
             <td id="product-label-${newProduct.product_id}">${newProduct.product_label}</td>
+            <td id="product-total-price-${newProduct.product_id}">${newProduct.product_total_price.replace(/\./g, ',')}</td>
             <td id="product-quantity-${newProduct.product_id}">${newProduct.product_quantity}</td>
             <td id="product-price-${newProduct.product_id}">${newProduct.product_price_per_unit.replace(/\./g, ',')}</td>
-            <td id="product-total-price-${newProduct.product_id}">${newProduct.product_total_price.replace(/\./g, ',')}</td>
             <td class="price-per-person" id="price-per-person-${newProduct.product_id}">N/A</td>
             <td>
                 <!-- Bouton Modifier pour chaque ligne produit -->
