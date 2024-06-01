@@ -11,20 +11,24 @@
             margin: 0;
             padding: 20px;
         }
+
         h1 {
             color: #333;
         }
+
         form {
             background-color: #fff;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
+
         label {
             display: block;
             margin-bottom: 8px;
             font-weight: bold;
         }
+
         input[type="date"],
         input[type="file"] {
             width: 100%;
@@ -34,6 +38,7 @@
             border-radius: 4px;
             box-sizing: border-box;
         }
+
         button {
             padding: 10px 20px;
             border: none;
@@ -43,49 +48,91 @@
             border-radius: 4px;
             font-size: 16px;
         }
+
         button:hover {
             background-color: #45a049;
         }
     </style>
 </head>
 <body>
-    <h1>SplitEase</h1>
-    <form id="upload-form" enctype="multipart/form-data">
-        <label for="date">Date des courses :</label>
-        <input type="date" id="date" name="date" required>
-        
-        <label for="picnic_file">Sélectionner un fichier :</label>
-        <input type="file" id="picnic_file" name="picnic_file" accept=".pdf" required>
-        
-        <button type="submit">Envoyer</button>
-    </form>
+<h1>SplitEase</h1>
+<form id="upload-form" enctype="multipart/form-data">
+    <h3>Créer une facture Picnic</h3>
+    <label for="date">Date des courses :</label>
+    <input type="date" id="date" name="date" required>
 
-    <script>
-        const form = document.getElementById('upload-form');
+    <label for="picnic_file">Sélectionner un fichier :</label>
+    <input type="file" id="picnic_file" name="picnic_file" accept=".pdf" required>
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
+    <button type="submit">Envoyer</button>
+</form>
+<div>
+    <h2>
+        OU
+    </h2>
+</div>
+<form id="upload-form-blank" enctype="multipart/form-data">
+    <h3>Créer une facture vierge</h3>
+    <label for="date-blank">Date des courses :</label>
+    <input type="date" id="date-blank" name="date" required>
+    <button type="submit">Créer</button>
+</form>
 
-            const formData = new FormData(form);
+<script>
+    const form = document.getElementById('upload-form');
 
-            try {
-                const response = await fetch('/splitease/file/', {
-                    method: 'POST',
-                    body: formData
-                });
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-                const responseData = await response.json();
+        const formData = new FormData(form);
 
-                if (responseData.success) {
-                    window.location.href = `/splitease/bill/${responseData.new_bill_id}/view/`;
-                } else {
-                    alert('Une erreur est survenue lors du traitement du fichier.');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Une erreur est survenue lors de l\'envoi de la requête.');
+        try {
+            const response = await fetch('/splitease/file/', {
+                method: 'POST',
+                body: formData
+            });
+
+            const responseData = await response.json();
+
+            if (responseData.success) {
+                window.location.href = `/splitease/bill/${responseData.new_bill_id}/view/`;
+            } else {
+                alert('Une erreur est survenue lors du traitement du fichier.');
             }
-        });
-    </script>
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Une erreur est survenue lors de l\'envoi de la requête.');
+        }
+    });
+</script>
+<script>
+    const form2 = document.getElementById('upload-form-blank');
+
+    form2.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formDataBlank = new FormData(form2);
+
+        try {
+            const response = await fetch('/splitease/bill/create/', {
+                method: 'POST',
+                body: formDataBlank
+            });
+
+            const responseDataBlank = await response.json();
+            console.log(responseDataBlank)
+
+            if (responseDataBlank.success) {
+                window.location.href = `/splitease/bill/${responseDataBlank.bill.bill_id}/view/`;
+            } else {
+                alert('Une erreur est survenue.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Une erreur est survenue lors de l\'envoi de la requête.');
+        }
+    });
+</script>
+
 </body>
 </html>

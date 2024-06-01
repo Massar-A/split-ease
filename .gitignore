@@ -2,3 +2,4 @@ SplitEase/.idea
 SplitEase/SplitEase/controllers/__pycache__
 SplitEase/SplitEase/migrations/__pycache__
 .DS_Store
+SplitEase/db.sqlite3

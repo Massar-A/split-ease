@@ -17,8 +17,13 @@ from .serializers import BillSerializer, ProductSerializer, ParticipantSerialize
 
 @csrf_exempt
 def create_new_bill(request):
+    date = request.POST.get('date')
     if request.method == 'POST':
-        return JsonResponse({'bill_id': bill_controller.create_new_bill()})
+        bill = BillSerializer(bill_controller.create_new_bill(date))
+        return JsonResponse({
+            "bill": bill.data,
+            "success": True
+        })
 
 
 @csrf_exempt
