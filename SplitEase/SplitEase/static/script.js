@@ -193,7 +193,7 @@ function addProductRow(newProduct, billId, csrfToken) {
                 <div id="product-action-buttons-${newProduct.product_id}" style="display: none;">
                     <!-- Boutons Valider et Annuler pour chaque ligne produit -->
                     <button class="button-secondary" onclick="saveProductChanges(${newProduct.product_id}, ${billId}, '${csrfToken}')">Valider</button>
-                    <button class="button-danger" onclick="cancelProductEdit()">Annuler</button>
+                    <button class="button-danger" onclick="cancelProductEdit(${newProduct.product_id})">Annuler</button>
                 </div>
             </td>
         `;
