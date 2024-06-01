@@ -4,3 +4,5 @@ SplitEase/SplitEase/migrations/__pycache__
 .DS_Store
 SplitEase/db.sqlite3
 SplitEase/db.sqlite3
+SplitEase/SplitEase/picnic/__pycache__
+SplitEase/SplitEase/__pycache__
