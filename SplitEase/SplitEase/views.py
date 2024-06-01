@@ -16,18 +16,6 @@ from .serializers import BillSerializer, ProductSerializer, ParticipantSerialize
 
 
 @csrf_exempt
-def create_new_bill(request):
-    date = request.POST.get('date')
-    if request.method == 'POST':
-        bill = bill_controller.create_new_bill(date)
-        bill_to_display = BillSerializer(bill)
-        return JsonResponse({
-            "bill": bill_to_display.data,
-            "success": True
-        })
-
-
-@csrf_exempt
 def set_bill_payer(request, bill_id):
     if request.method == 'PUT':
         participant_id = json.loads(request.body)['participant_id']
@@ -264,19 +252,18 @@ def index(request):
 
 
 @csrf_exempt
-def upload_file(request):
+def create_new_bill(request):
+    date = request.POST.get('date')
     if request.method == 'POST':
-        if 'picnic_file' in request.FILES:
-            file = request.FILES['picnic_file']
-            return bill_details('GET', picnic_main.create_picnic_bill(file))
-        elif 'img' in request.FILES:
-            file = request.FILES['img']
-            return JsonResponse(picnic_main.analyze_picnic(file), safe=False)
-        else:
-            return HttpResponseBadRequest('Missing required pdf file ou image')
-    else:
-        return HttpResponseBadRequest('Only POST requests are allowed')
 
+        bill = bill_controller.create_new_bill(date)
+        bill_to_display = BillSerializer(bill)
+        return JsonResponse({
+            "bill": bill_to_display.data,
+            "success": True
+        })
+    else:
+        return JsonResponse('ONLY POST METHOD ALLOWED')
 
 @csrf_exempt
 def upload_file(request):
